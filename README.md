@@ -27,8 +27,8 @@ Use trained model or press Play for inference.
   +1 correct goal
   -0.1 wrong goal
   small negative per step
-
-## Demo
 ## 📸 Screenshots
 
 ![Game](page1.png)
+## 🎥 Demo Video
+https://drive.google.com/file/d/1HVNfcvpwoW_8mjoTN0c9JM56r35H2hF1/view?usp=drive_link
