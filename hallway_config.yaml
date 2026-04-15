@@ -1,0 +1,123 @@
+# ============================================================
+# HallwayAgent -- 5-Gate Colour Memory Corridor
+# ============================================================
+# The agent observes a coloured indicator block at episode start,
+# then navigates through 5 gate pairs, passing the side whose
+# colour matches the indicator each time.
+# LSTM memory is essential: the indicator is only visible near
+# the start; the agent must carry that memory across all 5 gates.
+#
+# Observations (31 total):
+#   [0-29]  6 raycasts x 5 binary flags (wall/green/red/greenGoal/redGoal)
+#   [30]    normalised lateral position (agent.x / 5)  range [-1, +1]
+#
+# Reward structure:
+#   +0.10 per correct gate (episode continues)
+#   -0.30 per wrong   gate (episode continues — LSTM sees full corridor)
+#   +1.00 base finish reward + 0.10 per correct gate bonus
+#   -0.0003 per step (existential penalty, encourages speed)
+# ============================================================
+
+behaviors:
+  HallwayAgent:
+    trainer_type: ppo
+
+    # ----------------------------------------------------------
+    # PPO Hyperparameters
+    # ----------------------------------------------------------
+    hyperparameters:
+      batch_size: 256          # smaller batch → more gradient updates per episode
+      buffer_size: 8192        # large enough to hold ~40 full episodes
+
+      learning_rate: 3.0e-4
+
+      # Moderate entropy bonus — keep exploration while learning the memory task
+      beta: 5.0e-3
+
+      epsilon: 0.2
+      lambd:   0.95
+      num_epoch: 3
+
+      learning_rate_schedule: linear
+      beta_schedule:          linear
+      epsilon_schedule:       linear
+
+    # ----------------------------------------------------------
+    # Network Architecture
+    # ----------------------------------------------------------
+    network_settings:
+      normalize:    false  # observations are already in [-1, 1] / binary
+      hidden_units: 256
+      num_layers:   2
+
+      # LSTM — critical for this task.
+      # The agent must remember the target colour seen at z=-20
+      # and apply that memory across 5 gate decisions.
+      # sequence_length=128 covers most of a full episode so the LSTM
+      # trains on long-range temporal dependencies.
+      memory:
+        memory_size:     128
+        sequence_length: 128
+
+    # ----------------------------------------------------------
+    # Reward Signals
+    # ----------------------------------------------------------
+    reward_signals:
+      extrinsic:
+        gamma:    0.99   # high discount — final finish reward matters
+        strength: 1.0
+
+    # ----------------------------------------------------------
+    # Training Schedule
+    # ----------------------------------------------------------
+    max_steps: 2000000        # doubled — memory tasks need more steps
+
+    # time_horizon=128 ensures each training window covers the
+    # bulk of a corridor run (5 gates, ~200 decisions per episode).
+    time_horizon: 128
+
+    summary_freq:        10000   # TensorBoard updates every 10k steps
+    keep_checkpoints:    5
+    checkpoint_interval: 100000
+
+# ----------------------------------------------------------
+# Default Settings  (safety net if BehaviorName reverts to "My Behavior")
+# ----------------------------------------------------------
+default_settings:
+  trainer_type: ppo
+  hyperparameters:
+    batch_size:    256
+    buffer_size:   8192
+    learning_rate: 3.0e-4
+    beta:          5.0e-3
+    epsilon:       0.2
+    lambd:         0.95
+    num_epoch:     3
+    learning_rate_schedule: linear
+    beta_schedule:          linear
+    epsilon_schedule:       linear
+  network_settings:
+    normalize:    false
+    hidden_units: 256
+    num_layers:   2
+    memory:
+      memory_size:     128
+      sequence_length: 128
+  reward_signals:
+    extrinsic:
+      gamma:    0.99
+      strength: 1.0
+  max_steps:           2000000
+  time_horizon:        128
+  summary_freq:        10000
+  keep_checkpoints:    5
+  checkpoint_interval: 100000
+
+# ----------------------------------------------------------
+# Engine Settings
+# ----------------------------------------------------------
+engine_settings:
+  time_scale:        20    # 20x faster than real-time during training
+  target_frame_rate: -1    # unlimited
+  no_graphics:       false # keep false so the Game view shows training
+  quality_level:     5
