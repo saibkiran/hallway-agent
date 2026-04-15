@@ -29,4 +29,6 @@ Use trained model or press Play for inference.
   small negative per step
 
 ## Demo
-(Add your video/screenshots here)
+## 📸 Screenshots
+
+![Game](page.png)
