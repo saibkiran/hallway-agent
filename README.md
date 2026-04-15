@@ -31,4 +31,4 @@ Use trained model or press Play for inference.
 ## Demo
 ## 📸 Screenshots
 
-![Game](page.png)
+![Game](page1.png)
