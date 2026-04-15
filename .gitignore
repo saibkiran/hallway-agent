@@ -1,0 +1,28 @@
+# Unity generated folders
+
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+UserSettings/
+
+# Visual Studio / VSCode
+
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# ML-Agents results
+
+results/
+models/
+*.onnx
